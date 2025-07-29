@@ -25,6 +25,7 @@ public class VNLPrinter : MonoBehaviour
     }
 
     //Основной метод посимвольной печати строки. 0-мгновенная печать
+    //разбивает строку на символы и теги и запускает вспомогательный метод
     public void Print(string Sentence, ushort SymbolsPerSecond)
     {
         //проверки данных
@@ -33,6 +34,7 @@ public class VNLPrinter : MonoBehaviour
         if (Regex.IsMatch(Sentence, @"^ *$")) { Debug.LogWarning("String is empty: just spaces"); }
 
         //основная часть
+        Clear();
         if (SymbolsPerSecond == 0) { dialogueWindow.text = Sentence; }
         else
         {
@@ -50,6 +52,8 @@ public class VNLPrinter : MonoBehaviour
         }
     }
 
+    //вспомогательный метод для печати строки
+    //выводит нарезанные фрагменты текста на экран
     void Printing()
     {
         if (SymbolsQueue.Count == 0) 
@@ -59,6 +63,13 @@ public class VNLPrinter : MonoBehaviour
             return; 
         }
         dialogueWindow.text += SymbolsQueue.Dequeue();
+    }
+
+    //метод для очистки данных перед выводом следующей строки
+    void Clear()
+    {
+        dialogueWindow.text = "";
+        SymbolsQueue.Clear();
     }
 
 }
