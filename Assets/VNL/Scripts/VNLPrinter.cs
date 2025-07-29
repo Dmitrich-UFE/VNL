@@ -5,15 +5,23 @@ using System.Text.RegularExpressions;
 using System.Collections.Generic;
 public class VNLPrinter : MonoBehaviour
 {
+    
+    public enum printStatus {Printing, Printed}
+    private Queue<string> SymbolsQueue;
+
     //текстовое окно
     [SerializeField] private TMP_Text dialogueWindow;
     [SerializeField] private string str;
-    public enum Status {Printing, Printed}
-    
+    public printStatus PrintStatus {get; private set;}
+
+    void Awake()
+    {
+        SymbolsQueue = new Queue<string>();
+    }
     
     void Start()
     {
-        Print(str, 1);
+        Print(str, 40);
     }
 
     //Основной метод посимвольной печати строки. 0-мгновенная печать
@@ -28,8 +36,6 @@ public class VNLPrinter : MonoBehaviour
         if (SymbolsPerSecond == 0) { dialogueWindow.text = Sentence; }
         else
         {
-            Queue<string> SymbolsQueue = new Queue<string>();
-
             string pattern = @"(<[^>]+>|.)";
             MatchCollection Symbols = Regex.Matches(Sentence, pattern);
 
@@ -39,24 +45,20 @@ public class VNLPrinter : MonoBehaviour
             }
             Symbols = null;
 
-
-            Invoke("Printing", 1/SymbolsPerSecond);
-
-            
-
-            void Printing()
-            {
-                if (SymbolsQueue.Peek() != null) 
-                {
-                     dialogueWindow.text += SymbolsQueue.Dequeue();
-                     Invoke("Printing", 1/SymbolsPerSecond);
-                }
-            }
-
-
-
-
-
+            InvokeRepeating("Printing", 0f, 1f/SymbolsPerSecond);
+            PrintStatus = printStatus.Printing;
         }
     }
+
+    void Printing()
+    {
+        if (SymbolsQueue.Count == 0) 
+        {
+            CancelInvoke("Printing");  
+            PrintStatus = printStatus.Printed;
+            return; 
+        }
+        dialogueWindow.text += SymbolsQueue.Dequeue();
+    }
+
 }
