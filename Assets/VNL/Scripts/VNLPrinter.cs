@@ -3,16 +3,27 @@ using TMPro;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
+
 public class VNLPrinter : MonoBehaviour
 {
-    
     public enum printStatus {Printing, Printed}
     private Queue<string> SymbolsQueue;
 
     //текстовое окно
     [SerializeField] private TMP_Text dialogueWindow;
     [SerializeField] private string str;
+    [SerializeField] private VNLClickHandler _VNLClickHandler;
+    [SerializeField] private int symbolsPerSecond;
     public printStatus PrintStatus {get; private set;}
+    public int SymbolsPerSecond 
+    {
+        get => symbolsPerSecond;
+        set 
+        {
+            if (value < 0) { Debug.LogError("Symbols count per second mustn't be less a zero"); } 
+            symbolsPerSecond = value;
+        }
+    }
 
     void Awake()
     {
@@ -21,12 +32,12 @@ public class VNLPrinter : MonoBehaviour
     
     void Start()
     {
-        Print(str, 40);
+        Print(str);
     }
 
     //Основной метод посимвольной печати строки. 0-мгновенная печать
     //разбивает строку на символы и теги и запускает вспомогательный метод
-    public void Print(string Sentence, ushort SymbolsPerSecond)
+    public void Print(string Sentence)
     {
         //проверки данных
         if (dialogueWindow == null) { Debug.LogError("Component \"VNLPrinter.dialogueWindow\" is null"); return; }
@@ -35,6 +46,7 @@ public class VNLPrinter : MonoBehaviour
 
         //основная часть
         Clear();
+
         if (SymbolsPerSecond == 0) { dialogueWindow.text = Sentence; }
         else
         {
@@ -56,13 +68,29 @@ public class VNLPrinter : MonoBehaviour
     //выводит нарезанные фрагменты текста на экран
     void Printing()
     {
+        //условие завершения вывода
         if (SymbolsQueue.Count == 0) 
         {
             CancelInvoke("Printing");  
             PrintStatus = printStatus.Printed;
             return; 
         }
-        dialogueWindow.text += SymbolsQueue.Dequeue();
+
+        //исследование тегов
+        switch (SymbolsQueue.Peek())
+        {
+            case string customTag when Regex.IsMatch(customTag, @"^ *< *wait *> *$"):
+                CancelInvoke("Printing"); 
+                SymbolsQueue.Dequeue();
+                _VNLClickHandler.OnClick += Continue;
+                break;
+
+            //другие теги:
+            //оформляются подобным образом. Если нужен клик для срабатывания тега, то обязательно подписываемся на событие _VNLClickHandler.OnClick
+            
+            //если кастомные теги не обнаружены, то просто выводим текст со стандартными тегами
+            default: dialogueWindow.text += SymbolsQueue.Dequeue(); break;
+        }
     }
 
     //метод для очистки данных перед выводом следующей строки
@@ -72,4 +100,10 @@ public class VNLPrinter : MonoBehaviour
         SymbolsQueue.Clear();
     }
 
+    //вызов продолжения вывода текста
+    void Continue()
+    {
+        _VNLClickHandler.OnClick -= Continue;
+        InvokeRepeating("Printing", 0f, 1f/SymbolsPerSecond);
+    }
 }
