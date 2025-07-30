@@ -1,5 +1,6 @@
 using UnityEngine;
 using TMPro;
+using System;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
@@ -79,10 +80,18 @@ public class VNLPrinter : MonoBehaviour
         //исследование тегов
         switch (SymbolsQueue.Peek())
         {
+            //ожидание клика
             case string customTag when Regex.IsMatch(customTag, @"^ *< *wait *> *$"):
                 CancelInvoke("Printing"); 
                 SymbolsQueue.Dequeue();
                 _VNLClickHandler.OnClick += Continue;
+                break;
+
+            //задержка вывода
+            case string customTag2 when Regex.IsMatch(customTag2, @"^ *< *delay *= *[^+-]\d+ *> *$"):
+                CancelInvoke("Printing"); 
+                SymbolsQueue.Dequeue();
+                Delay(Convert.ToUInt32(Regex.Match(customTag2, @"(?<=\=) *\d+").Value));
                 break;
 
             //другие теги:
@@ -105,5 +114,10 @@ public class VNLPrinter : MonoBehaviour
     {
         _VNLClickHandler.OnClick -= Continue;
         InvokeRepeating("Printing", 0f, 1f/SymbolsPerSecond);
+    }
+
+    void Delay(uint milliseconds)
+    {
+        InvokeRepeating("Printing", milliseconds/1000f, 1f/SymbolsPerSecond);
     }
 }
