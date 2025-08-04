@@ -12,4 +12,9 @@ public class VNLClickHandler : MonoBehaviour
             OnClick?.Invoke();
         }
     }
+
+    public void OnLeftMouseClickUIHandler()
+    {
+        OnClick?.Invoke();
+    }
 }

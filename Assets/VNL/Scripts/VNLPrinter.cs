@@ -8,6 +8,7 @@ using System.Collections.Generic;
 public class VNLPrinter : MonoBehaviour
 {
     public enum printStatus {Printing, Printed}
+    public VNLTextStyles vnlTextStyles;
     private Queue<string> SymbolsQueue;
     private int currentSymbolsPerSecond;
 
@@ -107,12 +108,34 @@ public class VNLPrinter : MonoBehaviour
                 if (Regex.IsMatch(customTag3, @" *< */? *sps *> *", RegexOptions.IgnoreCase))
                     CurrentSPSPrint(Convert.ToUInt32(SymbolsPerSecond));
                 break;
+
+            case string VNLStyleTag when Regex.IsMatch(VNLStyleTag, @"^ *< */? *VNLStyle *\S* *> *$", RegexOptions.IgnoreCase):
+
+                //стиль: RandomLetterSize
+                if (Regex.IsMatch(VNLStyleTag, @"^ *< */? *VNLStyle *RandomLetterSize\(\d+, * \d+ *\) *> *$", RegexOptions.IgnoreCase))
+                {
+                    //открывающий тег
+                    if ((Regex.IsMatch(VNLStyleTag, @"^ *< *VNLStyle *RandomLetterSize\(\d+, * \d+ *\) *> *$", RegexOptions.IgnoreCase)))
+                    {
+                        MatchCollection MatchParameters = Regex.Matches(VNLStyleTag, @"\(((?:[^)\s]+(?:\s*,\s*[^)\s]+)*))\)", RegexOptions.IgnoreCase);
+                        List<object> ParametersList = new List<object>();
+                        foreach (Match m in MatchParameters) ParametersList.Add(Convert.ToInt32(m.Value));
+                        MatchParameters = null;
+                    }
+
+                    //закрывающий тег
+                    if ((Regex.IsMatch(VNLStyleTag, @"^ *< */ *VNLStyle *RandomLetterSize *> *$", RegexOptions.IgnoreCase)))
+                        vnlTextStyles.Remove("RandomLetterSize");
+                    
+                }
+                break;
+
                 
             //другие теги:
             //оформляются подобным образом. Если нужен клик для срабатывания тега, то обязательно подписываемся на событие _VNLClickHandler.OnClick
             
             //если кастомные теги не обнаружены, то просто выводим текст со стандартными тегами
-            default: dialogueWindow.text += SymbolsQueue.Dequeue(); break;
+            default: dialogueWindow.text += vnlTextStyles.ApplyAddedStyles(SymbolsQueue.Dequeue()); break;
         }
     }
 
