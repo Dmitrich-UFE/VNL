@@ -36,7 +36,7 @@ public class VNLPrinter : MonoBehaviour
     
     void Start()
     {
-        Print(str);
+        Print(dialogueWindow.text);
     }
 
     //Основной метод посимвольной печати строки. 0-мгновенная печать
@@ -84,50 +84,63 @@ public class VNLPrinter : MonoBehaviour
         switch (SymbolsQueue.Peek())
         {
             //ожидание клика
-            case string customTag when Regex.IsMatch(customTag, @"^ *< *wait *> *$", RegexOptions.IgnoreCase):
+            case string WaitTag when Regex.IsMatch(WaitTag, @"^ *< *wait *> *$", RegexOptions.IgnoreCase):
                 CancelInvoke("Printing"); 
                 SymbolsQueue.Dequeue();
                 _VNLClickHandler.OnClick += Continue;
                 break;
 
             //задержка вывода
-            case string customTag2 when Regex.IsMatch(customTag2, @"^ *< *delay *= *[^+-]\d+ *> *$", RegexOptions.IgnoreCase):
+            case string DelayTag when Regex.IsMatch(DelayTag, @"^ *< *delay *= *[^+-]\d+ *> *$", RegexOptions.IgnoreCase):
                 CancelInvoke("Printing"); 
                 SymbolsQueue.Dequeue();
-                Delay(Convert.ToUInt32(Regex.Match(customTag2, @"(?<=\=) *\d+").Value));
+                Delay(Convert.ToUInt32(Regex.Match(DelayTag, @"(?<=\=) *\d+").Value));
                 break;
 
             //печать с определенным количеством символов в секунду
-            case string customTag3 when Regex.IsMatch(customTag3, @"^ *< */? *sps *(= *[^+-]\d+ *)?> *$", RegexOptions.IgnoreCase):
-                CancelInvoke("Printing"); 
-                SymbolsQueue.Dequeue();
-
-                if (Regex.IsMatch(customTag3, @"^ *< *sps *(= *[^+-]\d+ *)?> *", RegexOptions.IgnoreCase))
-                    CurrentSPSPrint(Convert.ToUInt32(Regex.Match(customTag3, @"(?<=\=) *\d+").Value));
-
-                if (Regex.IsMatch(customTag3, @" *< */? *sps *> *", RegexOptions.IgnoreCase))
+            case string CurrentSymbolsPerSecondTag when Regex.IsMatch(CurrentSymbolsPerSecondTag, @"^ *< */? *sps *(= *[^+-]\d+ *)?> *$", RegexOptions.IgnoreCase): 
+                if (Regex.IsMatch(CurrentSymbolsPerSecondTag, @"^ *< *sps *(= *[^+-]\d+ *){1}> *$", RegexOptions.IgnoreCase))
+                {
+                    SymbolsQueue.Dequeue();
+                    CancelInvoke("Printing");    
+                    CurrentSPSPrint(Convert.ToUInt32(Regex.Match(CurrentSymbolsPerSecondTag, @"(?<=\=) *\d+").Value));
+                }
+                else if (Regex.IsMatch(CurrentSymbolsPerSecondTag, @"^ *< */? *sps *> *$", RegexOptions.IgnoreCase))
+                {
+                    SymbolsQueue.Dequeue();
+                    CancelInvoke("Printing");
                     CurrentSPSPrint(Convert.ToUInt32(SymbolsPerSecond));
+                }
+                else 
+                    goto default;
+
                 break;
 
-            case string VNLStyleTag when Regex.IsMatch(VNLStyleTag, @"^ *< */? *VNLStyle *\S* *> *$", RegexOptions.IgnoreCase):
-
-                //стиль: RandomLetterSize
-                if (Regex.IsMatch(VNLStyleTag, @"^ *< */? *VNLStyle *RandomLetterSize\(\d+, * \d+ *\) *> *$", RegexOptions.IgnoreCase))
+            //стиль: RandomLetterSize
+            case string VNLStyleTagRandomLetterSize when Regex.IsMatch(VNLStyleTagRandomLetterSize, @"^ *< */? *VNLStyle *RandomLetterSize *(\( *\d+ *, *\d+ *\))? *> *$", RegexOptions.IgnoreCase):
+                //Debug.Log("я застрял");
+                //открывающий тег
+                if ((Regex.IsMatch(VNLStyleTagRandomLetterSize, @"^ *< *VNLStyle *RandomLetterSize\(\d+, * \d+ *\) *> *$", RegexOptions.IgnoreCase)))
                 {
-                    //открывающий тег
-                    if ((Regex.IsMatch(VNLStyleTag, @"^ *< *VNLStyle *RandomLetterSize\(\d+, * \d+ *\) *> *$", RegexOptions.IgnoreCase)))
-                    {
-                        MatchCollection MatchParameters = Regex.Matches(VNLStyleTag, @"\(((?:[^)\s]+(?:\s*,\s*[^)\s]+)*))\)", RegexOptions.IgnoreCase);
-                        List<object> ParametersList = new List<object>();
-                        foreach (Match m in MatchParameters) ParametersList.Add(Convert.ToInt32(m.Value));
-                        MatchParameters = null;
-                    }
-
-                    //закрывающий тег
-                    if ((Regex.IsMatch(VNLStyleTag, @"^ *< */ *VNLStyle *RandomLetterSize *> *$", RegexOptions.IgnoreCase)))
-                        vnlTextStyles.Remove("RandomLetterSize");
-                    
+                    SymbolsQueue.Dequeue();
+                    MatchCollection MatchParameters = Regex.Matches(VNLStyleTagRandomLetterSize, @"(\d+)");
+                    List<object> ParametersList = new List<object>();
+                    foreach (Match m in MatchParameters) ParametersList.Add(Convert.ToInt32(m.Value));
+                    vnlTextStyles.Add("RandomLetterSize", ParametersList);
+                    MatchParameters = null;
                 }
+                //закрывающий тег
+                else if ((Regex.IsMatch(VNLStyleTagRandomLetterSize, @"^ *< */ *VNLStyle *RandomLetterSize *> *$", RegexOptions.IgnoreCase)))
+                {
+                    SymbolsQueue.Dequeue();
+                    vnlTextStyles.Remove("RandomLetterSize");                   
+                }
+                //если тег не совпал с паттернами(например, </VNLStyle RandomLetterSize(2, 55)>)
+                else
+                {
+                    goto default;
+                }
+
                 break;
 
                 

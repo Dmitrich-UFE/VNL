@@ -491,11 +491,11 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "<A href=\"https://www.ur.ru\">\u0417\u0434\u0435\u0441\u044C</A> \u0431\u0443\u0434\u0435\u0442
-    <mark=#ff000085>\u0432\u0441\u044F \u043F\u043E\u043B\u0435\u0437\u043D\u0430\u044F 
-    <sps = 8>< delay = 2500>\u0438\u043D\u0444\u043E\u0440\u043C\u0430\u0446\u0438\u044F</mark>
-    <sprite name=\"like\">. <color=\"green\"><b>\u0423\u0447\u0442\u0438\u0442\u0435<u><wait></b>,
-    <VNLStyle RandomLetterSize(2, 55)>\u0447\u0442\u043E \u0434\u0430\u043D\u043D\u044B\u0439</u>
+  m_text: "<A href=\"https://www.ur.ru\">\u0417\u0434\u0435\u0441\u044C</A> <VNLStyle
+    RandomLetterSize(21, 55)>\u0431\u0443\u0434\u0435\u0442 <mark=#ff000085>\u0432\u0441\u044F
+    \u043F\u043E\u043B\u0435\u0437\u043D\u0430\u044F  </sps = 8>< /delay = 2500>\u0438\u043D\u0444\u043E\u0440\u043C\u0430\u0446\u0438\u044F</mark>
+    <sprite name=\"like\">. <color=\"green\"><b>\u0423\u0447\u0442\u0438\u0442\u0435<u><wait></b>, 
+    </VNLStyle RandomLetterSize>\u0447\u0442\u043E \u0434\u0430\u043D\u043D\u044B\u0439</u>
     \u0440\u0435\u0441\u0443\u0440\u0441</sps> <u>\u043C\u043E\u0436\u0435\u0442
     \u0431\u044B\u0442\u044C<b> \u0437\u0430\u0431\u043B\u043E\u043A\u0438\u0440\u043E\u0432\u0430\u043D</b>
     \u043D\u0430 \u0442\u0435\u0440\u0440\u0438\u0442\u043E\u0440\u0438\u0438<i>

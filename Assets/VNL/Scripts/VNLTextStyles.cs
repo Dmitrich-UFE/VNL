@@ -31,6 +31,15 @@ public class VNLTextStyles : MonoBehaviour
         
     }
 
+    string DefaultStyle(string text) { return text; } 
+
+    //принимает букву и возвращает букву размером <некоторое число из диапазона>
+    string RandomLetterSize(string text, int minsize, int maxsize)
+    {
+        if (Regex.IsMatch(text, @"^ *< *.+ *> *$")) return text;
+        return $"<size={rand.Next(minsize, maxsize)}px>{text}</size>";
+    }
+
     //добавляет применяемый стиль в словарь(имя делегата и параметры для него). 
     //Если применяемый стиль уже есть, то происходит перезапись параметров
     public void Add(string DelegateName, List<object> Parameters)
@@ -40,6 +49,7 @@ public class VNLTextStyles : MonoBehaviour
             VNLStyles.Remove(DelegateName);
         }
         VNLStyles.Add(DelegateName, Parameters);
+        VNLStyles[DelegateName].Insert(0, "text");
     }
 
     //удаляет применяемый стиль
@@ -51,22 +61,15 @@ public class VNLTextStyles : MonoBehaviour
     //применяет все записанные в словарь стили к подаваемому тексту
     public string ApplyAddedStyles(string text)
     {
-        if (VNLStyles == null) return text;
+        
+        if (VNLStyles.Count == 0) return text;   
 
         foreach (var Style in VNLStyles)
         {
-            MethodInfo delegateInfo = typeof(VNLTextStyles).GetMethod(Style.Key);
-            text = delegateInfo.Invoke(this, Style.Value.ToArray()) as string;
+            MethodInfo delegateInfo = typeof(VNLTextStyles).GetMethod(Style.Key, BindingFlags.NonPublic | BindingFlags.Instance);
+            Style.Value[0] = text;
+            text = delegateInfo.Invoke(this, Style.Value.ToArray()) as string;         
         }
         return text;
-    }
-
-    string DefaultStyle(string text) { return text; } 
-
-    //принимает букву и возвращает букву размером <некоторое число из диапазона>
-    string RandomLetterSize(string text, int minsize, int maxsize)
-    {
-        if (Regex.IsMatch(text, @"^ *< *.+ *> *$")) return text;
-        return $"<size={rand.Next(minsize, maxsize)}px>{text}</size>";
     }
 }
