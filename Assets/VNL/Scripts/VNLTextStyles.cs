@@ -6,9 +6,6 @@ using System.Reflection;
 
 public class VNLTextStyles : MonoBehaviour
 {
-    delegate string ApplyStyle(string text);
-    delegate string ApplyStyleWithRange(string text, int min, int max);
-    delegate string ApplyStyleWithRangeDouble(string text, float min, float max);
     private Dictionary<string, List<object>> VNLStyles;
     private System.Random rand;
 
@@ -61,7 +58,7 @@ public class VNLTextStyles : MonoBehaviour
     //применяет все записанные в словарь стили к подаваемому тексту
     public string ApplyAddedStyles(string text)
     {
-        
+        Debug.Log("Loh6");
         if (VNLStyles.Count == 0) return text;   
 
         foreach (var Style in VNLStyles)
@@ -70,6 +67,7 @@ public class VNLTextStyles : MonoBehaviour
             Style.Value[0] = text;
             text = delegateInfo.Invoke(this, Style.Value.ToArray()) as string;         
         }
+        Debug.Log("Loh7");
         return text;
     }
 }
