@@ -9,15 +9,14 @@ using System.Collections;
 public class VNLPrinter : MonoBehaviour
 {
     public enum printStatus {Printing, Printed}
-    public VNLTextStyles vnlTextStyles;
-    //private Queue<string> SymbolsQueue;
-    private int currentSymbolsPerSecond;
-
-    //текстовое окно
     [SerializeField] private TMP_Text dialogueWindow;
-    [SerializeField] private string str;
+
+    [SerializeField] private VNLTextStyles vnlTextStyles;
     [SerializeField] private VNLClickHandler _VNLClickHandler;
+    
+    [SerializeField] private string str;
     [SerializeField] private int symbolsPerSecond;
+
     public printStatus PrintStatus {get; private set;}
     public int SymbolsPerSecond 
     {
@@ -28,27 +27,18 @@ public class VNLPrinter : MonoBehaviour
             symbolsPerSecond = value;
         }
     }
-
-    void Awake()
-    {
-        //SymbolsQueue = new Queue<string>();
-        currentSymbolsPerSecond = SymbolsPerSecond;
-    }
     
     void Start()
     {
-        PrePrint(dialogueWindow.text, 25);
+        
+        str = dialogueWindow.text;
         dialogueWindow.text = "";
-        //Print(dialogueWindow.text);
+        PrePrint(str, 25);
     }
 
-    
-    //???????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
-//новая реализация
-
+    //Анализирует строку, нарезает ее и запускает основной метод печати
     void PrePrint(string Sentence, int SymbolsPerSecond)
     {
-        Debug.Log("loh1");
         if (SymbolsPerSecond <= 0) 
         {
             Debug.LogError("SymbolsPerrSecond count must be positive");
@@ -59,14 +49,12 @@ public class VNLPrinter : MonoBehaviour
         MatchCollection Symbols = Regex.Matches(Sentence, @"(<[^>]+>|.)");
 
         foreach (Match Symbol in Symbols) { SymbolsQueue.Enqueue(Symbol.Value); }
-        Symbols = null;
 
         PrintStatus = printStatus.Printing;
-        Debug.Log("loh2");
         StartCoroutine(Print(SymbolsQueue, SymbolsPerSecond));
     }
 
-
+    //Анализирует каждую структуру(элемент) в очереди на наличие тегов, которые необходимо обработать 
     IEnumerator Print(Queue<string> SymbolsQueue, int SymbolsPerSecond)
     {
         while (true)
@@ -80,7 +68,6 @@ public class VNLPrinter : MonoBehaviour
 
         string currentSymbol = SymbolsQueue.Dequeue();
 
-        Debug.Log("loh3");
         switch (currentSymbol)
         {
             case string VNLTag when IsVNLTag(VNLTag):
@@ -91,9 +78,8 @@ public class VNLPrinter : MonoBehaviour
                     case "Wait":
                         if (VNLTagInfo.IsOpener)
                         {
-                            bool ClickWhileWaiting = false;
-                            _VNLClickHandler.OnClick += () => ClickWhileWaiting = true;
-                            yield return new WaitUntil(() => ClickWhileWaiting);
+                            Debug.Log("<VNL Wait>");
+                            yield return new WaitForEventYieldInstruction(_VNLClickHandler, false);
                         }
                         break;
 
@@ -109,13 +95,14 @@ public class VNLPrinter : MonoBehaviour
                         {
                             StopCoroutine("Print");
                             StartCoroutine(Print(SymbolsQueue, Convert.ToInt32(VNLTagInfo.TagParameter)));
+                            yield break;
                         }
                         else
                         {
                             StopCoroutine("Print");
                             StartCoroutine(Print(SymbolsQueue, this.SymbolsPerSecond));
+                            yield break;
                         }
-                        break;
 
                     default:
                         Debug.LogError($"Tag \"{VNLTagInfo.TagName}\" is not exist in current context");
@@ -153,7 +140,6 @@ public class VNLPrinter : MonoBehaviour
                 break;
 
             default:
-                Debug.Log("loh4");
                 Printing(currentSymbol);
                 break;
         }
@@ -162,12 +148,11 @@ public class VNLPrinter : MonoBehaviour
         } //окончание while true
     }
 
+    //вспомогательный метод. Выводит символ непосредственно в текстовое поле
     void Printing(string text)
     {
-        Debug.Log("Loh5");
         dialogueWindow.text += vnlTextStyles.ApplyAddedStyles(text);
     }
-
 
     //Получение информации о теге VNL
     (string TagName, bool IsOpener, object TagParameter) GetVNLTagInfo(string VNLTag)
@@ -192,7 +177,6 @@ public class VNLPrinter : MonoBehaviour
             List<object> TagParameters = new List<object>();
             MatchCollection MatchParameters = Regex.Matches(VNLStyleTag, @"(?<= *\( *| *, *)(([^, !])+)(?= *\) *| *, *)");
             foreach (Match MatchParameter in MatchParameters) TagParameters.Add(MatchParameter.Value);
-            Debug.Log(TagParameters.Count);
             return (StyleTagName, IsOpener, TagParameters);
         }
 

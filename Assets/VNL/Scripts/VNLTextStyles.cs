@@ -58,16 +58,22 @@ public class VNLTextStyles : MonoBehaviour
     //применяет все записанные в словарь стили к подаваемому тексту
     public string ApplyAddedStyles(string text)
     {
-        Debug.Log("Loh6");
         if (VNLStyles.Count == 0) return text;   
 
         foreach (var Style in VNLStyles)
         {
+            try
+            {
             MethodInfo delegateInfo = typeof(VNLTextStyles).GetMethod(Style.Key, BindingFlags.NonPublic | BindingFlags.Instance);
             Style.Value[0] = text;
-            text = delegateInfo.Invoke(this, Style.Value.ToArray()) as string;         
+            text = delegateInfo.Invoke(this, Style.Value.ToArray()) as string;
+            }
+            catch (TargetParameterCountException)
+            {
+                Debug.LogError($"Style {Style.Key} cannot be used. Probably style parameters in tag is incorrect?");
+                continue;
+            }         
         }
-        Debug.Log("Loh7");
         return text;
     }
 }

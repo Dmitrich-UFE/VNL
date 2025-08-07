@@ -491,16 +491,10 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "123312<A href=\"https://www.ur.ru\">\u0417\u0434\u0435\u0441\u044C</A>
-    <VNLStyle RandomLetterSize(21, 55)>\u0431\u0443\u0434\u0435\u0442 <mark=#ff000085>\u0432\u0441\u044F
-    \u043F\u043E\u043B\u0435\u0437\u043D\u0430\u044F  </sps = 8>< delay = 2500>\u0438\u043D\u0444\u043E\u0440\u043C\u0430\u0446\u0438\u044F</mark>
-    <sprite name=\"like\">. <color=\"green\"><b>\u0423\u0447\u0442\u0438\u0442\u0435<u><wait></b>, 
-    </VNLStyle RandomLetterSize>\u0447\u0442\u043E \u0434\u0430\u043D\u043D\u044B\u0439</u>
-    \u0440\u0435\u0441\u0443\u0440\u0441</sps> <u>\u043C\u043E\u0436\u0435\u0442
-    \u0431\u044B\u0442\u044C<b> \u0437\u0430\u0431\u043B\u043E\u043A\u0438\u0440\u043E\u0432\u0430\u043D</b>
-    \u043D\u0430 \u0442\u0435\u0440\u0440\u0438\u0442\u043E\u0440\u0438\u0438<i>
-    \u043D\u0430\u0448\u0435\u0439 \u0441\u0442\u0440\u0430\u043D\u044B</i></u>.</color>
-    \n"
+  m_text: '1<VNL Wait>2<VNL Delay = 2000><VNL Wait>3<VNL Wait>4<VNL Wait>5<VNL Wait>6<VNL
+    Wait>78<VNL Wait>90<VNL SPS = 10>12<VNL Wait>345<VNLStyle RandomLetterSize(31,
+    70)>678901<VNL Wait>23456</VNLStyle RandomLetterSize>789</VNL SPS>01234567<VNL
+    Wait>89<VNL Wait>0 '
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fa0817dcc7b0a4b46bfa19211db1b896, type: 2}
   m_sharedMaterial: {fileID: -7543502304318561497, guid: fa0817dcc7b0a4b46bfa19211db1b896, type: 2}
@@ -591,10 +585,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f10718fec3157624b8f27bd86b90af9c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  vnlTextStyles: {fileID: 183926056}
   dialogueWindow: {fileID: 882929136}
-  str: 
+  vnlTextStyles: {fileID: 183926056}
   _VNLClickHandler: {fileID: 4478428857795848596}
+  str: 
   symbolsPerSecond: 20
 --- !u!1 &1216661151
 GameObject:
