@@ -1,7 +1,6 @@
 using UnityEngine;
 using TMPro;
 using System;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
 using System.Collections;
@@ -23,14 +22,15 @@ public class VNLPrinter : MonoBehaviour
         get => symbolsPerSecond;
         set 
         {
-            if (value < 0) { Debug.LogError("Symbols count per second mustn't be less a zero"); } 
-            symbolsPerSecond = value;
+            if (value < 0) 
+                Debug.LogError("Symbols count per second mustn't be less a zero");
+            else 
+                symbolsPerSecond = value;
         }
     }
     
     void Start()
     {
-        
         str = dialogueWindow.text;
         dialogueWindow.text = "";
         PrePrint(str, 25);
@@ -78,7 +78,6 @@ public class VNLPrinter : MonoBehaviour
                     case "Wait":
                         if (VNLTagInfo.IsOpener)
                         {
-                            Debug.Log("<VNL Wait>");
                             yield return new WaitForEventYieldInstruction(_VNLClickHandler, false);
                         }
                         break;
@@ -196,7 +195,4 @@ public class VNLPrinter : MonoBehaviour
     {
         return Regex.IsMatch(VNLTag, @"^ *< *VNLStyle *\w+ *\(( *\S+ *)*\) *> *$") ^ Regex.IsMatch(VNLTag, @"^ *< */ *VNLStyle *\w+ *> *$");
     }
-
-
-
 }

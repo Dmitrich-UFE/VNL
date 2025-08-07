@@ -1,6 +1,5 @@
 using UnityEngine;
 using System.Collections.Generic;
-using System;
 using System.Text.RegularExpressions;
 using System.Reflection;
 
@@ -14,21 +13,6 @@ public class VNLTextStyles : MonoBehaviour
         VNLStyles = new Dictionary<string, List<object>>();
         rand = new System.Random();
     }
-
-
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
-    string DefaultStyle(string text) { return text; } 
 
     //принимает букву и возвращает букву размером <некоторое число из диапазона>
     string RandomLetterSize(string text, int minsize, int maxsize)
