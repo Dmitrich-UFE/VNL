@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Reflection;
+using System;
 
 public class VNLTextStyles : MonoBehaviour
 {
@@ -52,11 +53,21 @@ public class VNLTextStyles : MonoBehaviour
             Style.Value[0] = text;
             text = delegateInfo.Invoke(this, Style.Value.ToArray()) as string;
             }
+            catch (NullReferenceException)
+            {
+                Debug.LogError($"Style {Style.Key} is not exist in current context");
+                continue;
+            }        
             catch (TargetParameterCountException)
             {
-                Debug.LogError($"Style {Style.Key} cannot be used. Probably style parameters in tag is incorrect?");
+                Debug.LogError($"Style {Style.Key} cannot be used. There are too many or too few parameters?");
                 continue;
-            }         
+            } 
+            catch (ArgumentException)
+            {
+                Debug.LogError($"Style {Style.Key} cannot be used. Probably style parameter(s) in tag is incorrect?");
+                continue;
+            }
         }
         return text;
     }
