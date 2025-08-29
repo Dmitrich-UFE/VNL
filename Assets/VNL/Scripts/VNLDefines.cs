@@ -8,8 +8,8 @@ public class VNLDefines : MonoBehaviour
     public Dictionary<string, TextAsset> VNLScripts {get; private set;}
     [SerializeField] private TextAsset[] vnlScripts;
 
-    public Dictionary<string, PlayableDirector> VNLDirectors {get; private set;}
-    [SerializeField] private PlayableDirector[] vnlDirectors;
+    public Dictionary<string, PlayableAsset> VNLDirectors {get; private set;}
+    [SerializeField] private PlayableAsset[] vnlDirectors;
 
     public Dictionary<string, (string localName, string style)> Characters {get; private set;}
     [SerializeField] private TextAsset characters;
@@ -71,6 +71,15 @@ public class VNLDefines : MonoBehaviour
         {
             Debug.LogWarning("Please set name of txt file to \"Characters\".");
         }
-        
+    }
+
+    public void InitializeResources()
+    {
+        VNLScripts = new Dictionary<string, TextAsset>();
+        VNLDirectors = new Dictionary<string, PlayableAsset>();
+        Characters = new Dictionary<string, (string localName, string style)>();
+        GetVNLScripts();
+        GetVNLDirectors();
+        GetCharacters();
     }
 }

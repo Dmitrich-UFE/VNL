@@ -20,7 +20,7 @@ public class VNLPrinter : MonoBehaviour
     private Queue<string> SymbolsQueue;
     private int currentSymbolsPerSecond;
 
-    public printStatus PrintStatus {get; private set;}
+    public printStatus PrintStatus;
     public int SymbolsPerSecond 
     {
         get => symbolsPerSecond;
@@ -35,19 +35,17 @@ public class VNLPrinter : MonoBehaviour
     
     void Start()
     {
-        currentSymbolsPerSecond = SymbolsPerSecond;
-        SymbolsQueue = PrePrint(dialogueWindow.text);
-        dialogueWindow.text = "";
-        StartCoroutine(Printing());
+    
     }
 
     //Запуск метода для печати
     public void Print(string nameText, string Sentence)
     {
         this.nameText.text = nameText;
-        currentSymbolsPerSecond = SymbolsPerSecond;
-        SymbolsQueue = PrePrint(dialogueWindow.text);
         dialogueWindow.text = "";
+        currentSymbolsPerSecond = SymbolsPerSecond;
+        SymbolsQueue = PrePrint(Sentence);
+        PrintStatus = printStatus.Printing;
         StartCoroutine(Printing());
     }
 
@@ -67,7 +65,6 @@ public class VNLPrinter : MonoBehaviour
     IEnumerator Printing()
     {
         _VNLClickHandler.OnClick += InvokeFastPrint;
-        PrintStatus = printStatus.Printing;
 
         while (SymbolsQueue.Count != 0)
         {
@@ -194,6 +191,8 @@ public class VNLPrinter : MonoBehaviour
                     break;
             }
         }
+
+        if (SymbolsQueue.Count == 0) PrintStatus = printStatus.Printed;
 
         dialogueWindow.text += PrintableText.ToString();
     }

@@ -8,25 +8,32 @@ using System;
 
 public class VNLInterpreter : MonoBehaviour
 {
-    [SerializeField] private string[] VNLScriptStrings;
     [SerializeField] private VNLPrinter _VNLPrinter;
     [SerializeField] private VNLDefines _VNLDefines;
     [SerializeField] private VNLClickHandler _VNLClickHandler;
+    [SerializeField] private string firstScript;
+    [SerializeField] private PlayableDirector timelineDirector;
+
+    private string[] VNLScriptStrings;
     private string currentVNLDirectorName; 
     private int index;
+
     
 
 
 
     void Awake()
     {
-        VNLScriptStrings = GetVNLScriptStrings("VNL 015");
+        _VNLDefines.InitializeResources();
+        VNLScriptStrings = GetVNLScriptStrings(firstScript);
     }
 
     
-    void Update()
+    void Start()
     {
-        
+        index = 0;
+        HandleString(index);
+        StartCoroutine(CheckStatus());
     }
 
     //Получить строки VNLScript
@@ -40,16 +47,22 @@ public class VNLInterpreter : MonoBehaviour
     public void HandleString(int StringIndex)
     {
         string VNLScriptString = VNLScriptStrings[StringIndex];
+
         switch (VNLScriptString)
         {
-            case string VNLDialogueStandartString when Regex.IsMatch(VNLDialogueStandartString, @"^ *"".+"" +"".+"" *$"):
+            case string VNLDialogueStandartString when IsVNLDialogueStandartString(VNLDialogueStandartString):
                 MatchCollection SplittedDialogueString = Regex.Matches(VNLDialogueStandartString, @"(?<="")[^""]+(?="")");
                 _VNLPrinter.Print(SplittedDialogueString[0].Value, SplittedDialogueString[2].Value);
                 break;
             
-            case string VNLDialogueShortString when Regex.IsMatch(VNLDialogueShortString, @"^ *>(\S)+ +"".+"" *$"):
-                string CharacterName = Regex.Match(VNLDialogueShortString, @" *(?<=>)(\S)+").Value;
-                _VNLPrinter.Print(_VNLDefines.Characters[CharacterName].style + _VNLDefines.Characters[CharacterName].localName, Regex.Match(VNLDialogueShortString, @"(?<="")[^""]+(?="")").Value);
+            case string VNLDialogueNamedString when IsVNLDialogueNamedString(VNLDialogueNamedString):
+                string CharacterName = Regex.Match(VNLDialogueNamedString, @" *(?<=>)(\S)+").Value;
+                _VNLPrinter.Print(_VNLDefines.Characters[CharacterName].style + _VNLDefines.Characters[CharacterName].localName, Regex.Match(VNLDialogueNamedString, @"(?<="")[^""]+(?="")").Value);
+                break;
+
+            case string VNLDialogueShortString when Regex.IsMatch(VNLDialogueShortString, @"^ *"".+"" *"):
+                string SplittedShortDialogueString = Regex.Match(VNLDialogueShortString, @"(?<="")[^""]+(?="")").Value;
+                _VNLPrinter.Print(" ", SplittedShortDialogueString);
                 break;
 
             case string VNLScriptCommand when IsVNLScriptCommand(VNLScriptCommand):
@@ -58,12 +71,14 @@ public class VNLInterpreter : MonoBehaviour
                 {
                     case "Import":
                         currentVNLDirectorName = ScriptLexems[1].Value;
-                        _VNLDefines.VNLDirectors[currentVNLDirectorName]?.Play();
+                        timelineDirector.playableAsset = _VNLDefines.VNLDirectors[currentVNLDirectorName];
+                        timelineDirector.time = 0f;
+                        Next();
                         break;
                     
                     case "Set":
-                        _VNLDefines.VNLDirectors[currentVNLDirectorName]?.Play();
-                        Invoke("pausePlayingDirector", Convert.ToSingle(ScriptLexems[1].Value) - Convert.ToSingle(_VNLDefines.VNLDirectors[currentVNLDirectorName]?.time));
+                        timelineDirector.Play();
+                        Invoke("pausePlayingDirector", Convert.ToSingle(ScriptLexems[1].Value) - Convert.ToSingle(timelineDirector.time));
                         break;
                     
                     case "Download":
@@ -73,18 +88,25 @@ public class VNLInterpreter : MonoBehaviour
                         break;
                 }
                 break;
+
+            default:
+                Debug.Log($"VNLInterpreter hasn't could handle this string: {VNLScriptString}, index: {index}");
+                break;
         }
     }
 
     
 
     //подписывает или отписывает метод переключения на следующую строку от события клика в зависимости от статуса вывода
-    IEnumerator SubscribeHandler()
+    IEnumerator CheckStatus()
     {
+        while(true)
+        {
         switch (_VNLPrinter.PrintStatus)
         {
             case VNLPrinter.printStatus.Printed:
                 _VNLClickHandler.OnClick += Next;
+                yield return new WaitForEventYieldInstruction(_VNLClickHandler, false);
                 break;
             
             case VNLPrinter.printStatus.Printing:
@@ -93,7 +115,9 @@ public class VNLInterpreter : MonoBehaviour
 
             default: break;
         }
+
         yield return null;
+        }
     }
 
     public void Next()
@@ -104,7 +128,20 @@ public class VNLInterpreter : MonoBehaviour
 
     private void pausePlayingDirector()
     {
-        _VNLDefines.VNLDirectors[currentVNLDirectorName]?.Pause();
+        timelineDirector.Pause();
+        Next();
+    }
+
+    private bool IsVNLDialogueStandartString(string VNLDialogueStandartString)
+    {
+        return Regex.IsMatch(VNLDialogueStandartString, @"^ *"".+"" +"".+"" *");
+    }
+
+    
+
+    private bool IsVNLDialogueNamedString(string VNLDialogueNamedString)
+    {
+        return Regex.IsMatch(VNLDialogueNamedString, @"^ *>(\S)+ +"".+"" *");
     }
 
     private bool IsVNLScriptCommand(string VNLScriptString)
