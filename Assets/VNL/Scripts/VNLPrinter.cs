@@ -5,11 +5,13 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
 using System.Collections;
+using UnityEngine.UI;
 
 public class VNLPrinter : MonoBehaviour
 {
     public enum printStatus {Printing, Printed}
     [SerializeField] private TMP_Text dialogueWindow;
+    [SerializeField] private TMP_Text nameText;
 
     [SerializeField] private VNLTextStyles vnlTextStyles;
     [SerializeField] private VNLClickHandler _VNLClickHandler;
@@ -36,7 +38,17 @@ public class VNLPrinter : MonoBehaviour
         currentSymbolsPerSecond = SymbolsPerSecond;
         SymbolsQueue = PrePrint(dialogueWindow.text);
         dialogueWindow.text = "";
-        StartCoroutine(Print());
+        StartCoroutine(Printing());
+    }
+
+    //Запуск метода для печати
+    public void Print(string nameText, string Sentence)
+    {
+        this.nameText.text = nameText;
+        currentSymbolsPerSecond = SymbolsPerSecond;
+        SymbolsQueue = PrePrint(dialogueWindow.text);
+        dialogueWindow.text = "";
+        StartCoroutine(Printing());
     }
 
     //Анализирует строку, нарезает ее и возвращает очередь нарезанных подстрок
@@ -52,7 +64,7 @@ public class VNLPrinter : MonoBehaviour
     }
 
     //Анализирует каждую структуру(элемент) в очереди на наличие тегов, которые необходимо обработать 
-    IEnumerator Print()
+    IEnumerator Printing()
     {
         _VNLClickHandler.OnClick += InvokeFastPrint;
         PrintStatus = printStatus.Printing;
@@ -93,7 +105,7 @@ public class VNLPrinter : MonoBehaviour
                         
                     default:
                         Debug.LogError($"Tag \"{VNLTagInfo.TagName}\" is not exist in current context");
-                        Printing(currentSymbol);
+                        PrintSymbol(currentSymbol);
                         break;
                 }
                 yield return new WaitForSecondsRealtime(1f/currentSymbolsPerSecond);
@@ -111,7 +123,7 @@ public class VNLPrinter : MonoBehaviour
 
             default:
                 _VNLClickHandler.OnClick += InvokeFastPrint;
-                Printing(currentSymbol);
+                PrintSymbol(currentSymbol);
                 break;
         }
         yield return new WaitForSecondsRealtime(1f/currentSymbolsPerSecond); 
@@ -124,7 +136,7 @@ public class VNLPrinter : MonoBehaviour
     }
 
     //вспомогательный метод. Выводит символ непосредственно в текстовое поле
-    void Printing(string text)
+    void PrintSymbol(string text)
     {
         dialogueWindow.text += vnlTextStyles.ApplyAddedStyles(text);
     }
@@ -149,10 +161,8 @@ public class VNLPrinter : MonoBehaviour
             {
                 case string VNLTag when IsVNLTag(VNLTag):
                     var VNLTagInfo = GetVNLTagInfo(VNLTag);
-                    Debug.Log(VNLTag);
                     if (VNLTagInfo.TagName.Equals("Wait") || VNLTagInfo.TagName.Equals("Delay"))
                     {
-                        Debug.Log("dfsdfsdf");
                         dialogueWindow.text += PrintableText.ToString();
                         return;
                     }
