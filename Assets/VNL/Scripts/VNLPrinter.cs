@@ -148,7 +148,7 @@ public class VNLPrinter : MonoBehaviour
         FastPrint();
     }
 
-    //мгновенный вывод фроагмента текста
+    //мгновенный вывод фрагмента текста
     void FastPrint()
     {
         StringBuilder PrintableText = new StringBuilder();
@@ -197,6 +197,7 @@ public class VNLPrinter : MonoBehaviour
 
         dialogueWindow.text += PrintableText.ToString();
     }
+
 
     //Получение информации о теге VNL
     (string TagName, bool IsOpener, object TagParameter) GetVNLTagInfo(string VNLTag)

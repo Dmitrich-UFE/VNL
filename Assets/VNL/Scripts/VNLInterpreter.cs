@@ -13,13 +13,14 @@ public class VNLInterpreter : MonoBehaviour
     [SerializeField] private VNLDefines _VNLDefines;
     [SerializeField] private VNLClickHandler _VNLClickHandler;
     private string currentVNLDirectorName; 
+    private int index;
     
 
 
 
-    void Start()
+    void Awake()
     {
-        
+        VNLScriptStrings = GetVNLScriptStrings("VNL 015");
     }
 
     
@@ -28,22 +29,17 @@ public class VNLInterpreter : MonoBehaviour
         
     }
 
-    void GetVNLScriptStrings(string name)
+    //Получить строки VNLScript
+    string[] GetVNLScriptStrings(string ScriptName)
     {
-        int FileIndex = 0;
-        for (int i = 0; i < _VNLDefines.VNLScripts.Length; i++)
-        {
-            if (VNLScriptStrings[i].ToString().Equals(name))
-            {
-                FileIndex = i;
-                break;
-            }
-        }
-        VNLScriptStrings = _VNLDefines.VNLScripts[FileIndex].text.Split('\n');
+        return _VNLDefines.VNLScripts[ScriptName].text.Split('\n');
     }
 
-    public void HandleString(string VNLScriptString)
+
+    //Обрабатывает строчки VNLScript
+    public void HandleString(int StringIndex)
     {
+        string VNLScriptString = VNLScriptStrings[StringIndex];
         switch (VNLScriptString)
         {
             case string VNLDialogueStandartString when Regex.IsMatch(VNLDialogueStandartString, @"^ *"".+"" +"".+"" *$"):
@@ -56,7 +52,7 @@ public class VNLInterpreter : MonoBehaviour
                 _VNLPrinter.Print(_VNLDefines.Characters[CharacterName].style + _VNLDefines.Characters[CharacterName].localName, Regex.Match(VNLDialogueShortString, @"(?<="")[^""]+(?="")").Value);
                 break;
 
-            case string VNLScriptCommand when Regex.IsMatch(VNLScriptCommand, @"^ *\$.+"):
+            case string VNLScriptCommand when IsVNLScriptCommand(VNLScriptCommand):
                 MatchCollection ScriptLexems = Regex.Matches(VNLScriptCommand, @"[^\$\s]+");
                 switch(ScriptLexems[0].Value)
                 {
@@ -67,17 +63,52 @@ public class VNLInterpreter : MonoBehaviour
                     
                     case "Set":
                         _VNLDefines.VNLDirectors[currentVNLDirectorName]?.Play();
-                        Invoke("pausePlayingDirector", Convert.ToInt32(ScriptLexems[1].Value) - Convert.ToSingle(_VNLDefines.VNLDirectors[currentVNLDirectorName]?.time));
+                        Invoke("pausePlayingDirector", Convert.ToSingle(ScriptLexems[1].Value) - Convert.ToSingle(_VNLDefines.VNLDirectors[currentVNLDirectorName]?.time));
+                        break;
+                    
+                    case "Download":
+                        index = 0;
+                        VNLScriptStrings = GetVNLScriptStrings(ScriptLexems[1].Value);
+                        HandleString(index);
                         break;
                 }
                 break;
         }
     }
 
-    public void Next(){}
+    
+
+    //подписывает или отписывает метод переключения на следующую строку от события клика в зависимости от статуса вывода
+    IEnumerator SubscribeHandler()
+    {
+        switch (_VNLPrinter.PrintStatus)
+        {
+            case VNLPrinter.printStatus.Printed:
+                _VNLClickHandler.OnClick += Next;
+                break;
+            
+            case VNLPrinter.printStatus.Printing:
+                _VNLClickHandler.OnClick -= Next;
+                break;
+
+            default: break;
+        }
+        yield return null;
+    }
+
+    public void Next()
+    {
+        index++;
+        HandleString(index);
+    }
 
     private void pausePlayingDirector()
     {
         _VNLDefines.VNLDirectors[currentVNLDirectorName]?.Pause();
+    }
+
+    private bool IsVNLScriptCommand(string VNLScriptString)
+    {
+        return Regex.IsMatch(VNLScriptString, @"^ *\$.+");
     }
 }
