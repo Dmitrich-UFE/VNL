@@ -8,8 +8,8 @@ public class VNLDefines : MonoBehaviour
     public Dictionary<string, TextAsset> VNLScripts {get; private set;}
     [SerializeField] private TextAsset[] vnlScripts;
 
-    public Dictionary<string, PlayableAsset> VNLDirectors {get; private set;}
-    [SerializeField] private PlayableAsset[] vnlDirectors;
+    public Dictionary<string, PlayableDirector> VNLDirectors {get; private set;}
+    [SerializeField] private PlayableDirector[] vnlDirectors;
 
     public Dictionary<string, (string localName, string style)> Characters {get; private set;}
     [SerializeField] private TextAsset characters;
@@ -76,7 +76,7 @@ public class VNLDefines : MonoBehaviour
     public void InitializeResources()
     {
         VNLScripts = new Dictionary<string, TextAsset>();
-        VNLDirectors = new Dictionary<string, PlayableAsset>();
+        VNLDirectors = new Dictionary<string, PlayableDirector>();
         Characters = new Dictionary<string, (string localName, string style)>();
         GetVNLScripts();
         GetVNLDirectors();

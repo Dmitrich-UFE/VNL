@@ -9,12 +9,11 @@ using UnityEngine.UI;
 
 public class VNLPrinter : MonoBehaviour
 {
-    public enum printStatus {Printing, Printed}
-    [SerializeField] private TMP_Text dialogueWindow;
-    [SerializeField] private TMP_Text nameText;
+    public enum printStatus {Printing, Printed, DoingCommand}
 
     [SerializeField] private VNLTextStyles vnlTextStyles;
     [SerializeField] private VNLClickHandler _VNLClickHandler;
+    [SerializeField] private VNLDialogueWindow _VNLDialogueWindow;
     
     [SerializeField] private int symbolsPerSecond;
     private Queue<string> SymbolsQueue;
@@ -32,17 +31,12 @@ public class VNLPrinter : MonoBehaviour
                 symbolsPerSecond = value;
         }
     }
-    
-    void Start()
-    {
-    
-    }
 
     //Запуск метода для печати
     public void Print(string nameText, string Sentence)
     {
-        this.nameText.text = nameText;
-        dialogueWindow.text = "";
+        _VNLDialogueWindow.Clear();
+        _VNLDialogueWindow.SetName(nameText);
         currentSymbolsPerSecond = SymbolsPerSecond;
         SymbolsQueue = PrePrint(Sentence);
         PrintStatus = printStatus.Printing;
@@ -135,7 +129,7 @@ public class VNLPrinter : MonoBehaviour
     //вспомогательный метод. Выводит символ непосредственно в текстовое поле
     void PrintSymbol(string text)
     {
-        dialogueWindow.text += vnlTextStyles.ApplyAddedStyles(text);
+        _VNLDialogueWindow.AddText(vnlTextStyles.ApplyAddedStyles(text));
     }
 
     //метод, который запустит метод мгновенного вывода фрагмента текста
@@ -160,7 +154,7 @@ public class VNLPrinter : MonoBehaviour
                     var VNLTagInfo = GetVNLTagInfo(VNLTag);
                     if (VNLTagInfo.TagName.Equals("Wait") || VNLTagInfo.TagName.Equals("Delay"))
                     {
-                        dialogueWindow.text += PrintableText.ToString();
+                        _VNLDialogueWindow.AddText(PrintableText.ToString());
                         return;
                     }
                     else if (VNLTagInfo.TagName.Equals("SPS"))
@@ -194,7 +188,7 @@ public class VNLPrinter : MonoBehaviour
 
         if (SymbolsQueue.Count == 0) PrintStatus = printStatus.Printed;
 
-        dialogueWindow.text += PrintableText.ToString();
+        _VNLDialogueWindow.AddText(PrintableText.ToString());
     }
 
 
