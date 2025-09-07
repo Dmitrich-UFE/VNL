@@ -8,9 +8,12 @@ public class VNLDialogueWindow : MonoBehaviour
     [SerializeField] private TMP_Text textWindow;
     [SerializeField] private TMP_Text nameWindow;
     [SerializeField] private VNLClickHandler _VNLClickHandler;
+    [SerializeField] private VNLInterpreter _VNLInterpreter;
 
     [SerializeField] private CanvasGroup dialogueWindow;
+    [SerializeField] private Button PrevButton;
     private IEnumerator actualAlphaEnumerator;
+
 
     public string GetName()
     {
@@ -46,6 +49,26 @@ public class VNLDialogueWindow : MonoBehaviour
     {
         textWindow.text = "";
         nameWindow.text = "";
+    }
+
+    public void Next()
+    {
+        _VNLInterpreter.Next();
+    }
+
+    public void Prev()
+    {
+
+    }
+
+    public void DeactivatePrevButton()
+    {
+        PrevButton.interactable = false;
+    }
+
+    public void ActivatePrevButton()
+    {
+        PrevButton.interactable = true;
     }
 
     public void Hide()

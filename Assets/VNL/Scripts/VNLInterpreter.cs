@@ -20,6 +20,9 @@ public class VNLInterpreter : MonoBehaviour
     private string currentVNLDirectorName; 
     private string actualInfo;
     private int index;
+    private IEnumerator checkStatusCoroutine;
+    private IEnumerator checkPrevButtonCoroutine;
+    private int firstVNLStringIndex;
 
     
 
@@ -29,20 +32,43 @@ public class VNLInterpreter : MonoBehaviour
     {
         _VNLDefines.InitializeResources();
         VNLScriptStrings = GetVNLScriptStrings(firstScript);
+
+        checkStatusCoroutine = CheckStatus();
+        checkPrevButtonCoroutine = CheckPrevButton();
+
+        firstVNLStringIndex = FindFirstVNLStringIndex();
     }
 
     
     void Start()
     {
+        Run();
+    }
+
+    public void Run()
+    {
         index = 0;
         HandleString(index);
-        StartCoroutine(CheckStatus());
+        StartCoroutine(checkStatusCoroutine);
+        StartCoroutine(checkPrevButtonCoroutine);
     }
 
     //Получить строки VNLScript
     string[] GetVNLScriptStrings(string ScriptName)
     {
         return _VNLDefines.VNLScripts[ScriptName].text.Split('\n');
+    }
+
+    int FindFirstVNLStringIndex()
+    {
+        for (int i = 0; i < VNLScriptStrings.Length; i++)
+        {
+            if (IsVNLScriptCommand(VNLScriptStrings[i]) == false)
+            {
+                return i;
+            }
+        }
+        return -1;
     }
 
 
@@ -52,7 +78,7 @@ public class VNLInterpreter : MonoBehaviour
         try
         {
             string VNLScriptString = VNLScriptStrings[StringIndex];
-
+            _VNLDialogueWindow.ActivatePrevButton();
             switch (VNLScriptString)
             {
                 case string VNLDialogueStandartString when IsVNLDialogueStandartString(VNLDialogueStandartString):
@@ -83,7 +109,7 @@ public class VNLInterpreter : MonoBehaviour
                             Next();
                             break;
 
-                        case "Set":
+                        case "PlayTo":
                             timelineDirector.Play();
                             Invoke("pausePlayingDirector", Convert.ToSingle(ScriptLexems[1].Value) - Convert.ToSingle(timelineDirector.time));
                             break;
@@ -91,11 +117,17 @@ public class VNLInterpreter : MonoBehaviour
                         case "Download":
                             index = 0;
                             VNLScriptStrings = GetVNLScriptStrings(ScriptLexems[1].Value);
+                            firstVNLStringIndex = FindFirstVNLStringIndex();
                             HandleString(index);
                             break;
                     
                         case "Info":
                             actualInfo = ScriptLexems[1].Value;
+                            Next();
+                            break;
+                        
+                        case "Set":
+                            timelineDirector.time = Convert.ToSingle(ScriptLexems[1].Value);
                             Next();
                             break;
                     }
@@ -108,7 +140,10 @@ public class VNLInterpreter : MonoBehaviour
         }
         catch (IndexOutOfRangeException)
         {
-            Debug.Log("Returning to main menu");
+            if (index >= VNLScriptStrings.Length)
+                Debug.Log("Returning to main menu");
+            else if (index < 1)
+                Debug.LogWarning("No strings before");
         }
     }
 
@@ -133,6 +168,44 @@ public class VNLInterpreter : MonoBehaviour
         }
 
         yield return null;
+        }
+    }
+
+    IEnumerator CheckPrevButton()
+    {
+        while(true)
+        {
+            if (index > firstVNLStringIndex)
+                _VNLDialogueWindow.ActivatePrevButton();
+            else if (index <= firstVNLStringIndex)
+                _VNLDialogueWindow.DeactivatePrevButton();
+            yield return null;
+        }
+    }
+
+    public void Prev()
+    {   
+        _VNLPrinter.PrintStatus = VNLPrinter.printStatus.DoingCommand;
+        StopCoroutine(checkStatusCoroutine);
+        HelpPrev();
+    }
+
+    public void HelpPrev()
+    {
+        if (index > firstVNLStringIndex)
+        {
+            _VNLDialogueWindow.ActivatePrevButton();
+            index--;
+            if (IsVNLScriptCommand(VNLScriptStrings[index]))
+            {
+                HelpPrev();
+            }
+            else
+            {
+                HandleString(index);
+                StartCoroutine(checkStatusCoroutine);
+            }
+
         }
     }
 
