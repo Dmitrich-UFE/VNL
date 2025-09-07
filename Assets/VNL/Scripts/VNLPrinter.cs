@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using System.Collections.Generic;
 using System.Collections;
 using UnityEngine.UI;
+using Unity.VisualScripting.FullSerializer;
 
 public class VNLPrinter : MonoBehaviour
 {
@@ -92,7 +93,12 @@ public class VNLPrinter : MonoBehaviour
                         currentSymbolsPerSecond = VNLTagInfo.IsOpener ? 
                         Convert.ToInt32(VNLTagInfo.TagParameter) : 
                         this.SymbolsPerSecond;
-                    break;
+                        break;
+
+                    case "Next":
+                        SymbolsQueue.Clear();
+                        _VNLDialogueWindow.Next();
+                        yield break;
                         
                     default:
                         Debug.LogError($"Tag \"{VNLTagInfo.TagName}\" is not exist in current context");
@@ -163,6 +169,12 @@ public class VNLPrinter : MonoBehaviour
                         Convert.ToInt32(VNLTagInfo.TagParameter) : 
                         this.SymbolsPerSecond;
                         SymbolsQueue.Dequeue();
+                    }
+                    else if (VNLTagInfo.TagName.Equals("Next"))
+                    {
+                        SymbolsQueue.Clear();
+                        _VNLDialogueWindow.Next();
+                        return;
                     }
                     else
                     {
